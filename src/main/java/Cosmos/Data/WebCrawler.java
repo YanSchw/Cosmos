@@ -44,17 +44,15 @@ public class WebCrawler extends Thread {
         Document doc = Jsoup.parse(html);
         Database.updateTitle(url, doc.title());
 
-        ArrayList<String> hrefs = extractHRefFromHTML(html);
+        ArrayList<String> hrefs = extractHRefFromDoc(doc);
         for (String href : hrefs) {
             Database.insertNewURL(href, depth + 1);
         }
-        ArrayList<String> tokens = extractTokensFromHTML(html);
+        ArrayList<String> tokens = extractTokensFromDoc(doc);
         Database.deleteIndiciesForURL(url);
         Database.insertIndicies(url, tokens);
     }
-    private ArrayList<String> extractHRefFromHTML(String html) {
-        Document doc = Jsoup.parse(html);
-
+    private ArrayList<String> extractHRefFromDoc(Document doc) {
         ArrayList<String> out = new ArrayList<>();
         Elements elements = doc.getAllElements();
         for (int i = 0; i < elements.size(); i++) {
@@ -66,8 +64,7 @@ public class WebCrawler extends Thread {
 
         return out;
     }
-    private ArrayList<String> extractTokensFromHTML(String html) {
-        Document doc = Jsoup.parse(html);
+    private ArrayList<String> extractTokensFromDoc(Document doc) {
         String text = doc.text();
 
         ArrayList<String> out = new ArrayList<>();
