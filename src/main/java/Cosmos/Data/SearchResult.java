@@ -4,10 +4,17 @@ import java.util.HashMap;
 
 public class SearchResult {
 
-    public HashMap<String, Integer> matches = new HashMap<>();
+    public HashMap<String, WebPage> matches = new HashMap<>();
 
     public void insertURL(String url) {
-        matches.put(url, matches.getOrDefault(url, 0) + 1);
+        if (!matches.containsKey(url)) {
+            WebPage page = new WebPage();
+            page.url = url;
+            matches.put(url, page);
+        }
+
+        WebPage page = matches.get(url);
+        page.score += 100;
     }
 
 }

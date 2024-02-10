@@ -2,11 +2,13 @@ package Cosmos.Views;
 
 import Cosmos.Data.Database;
 import Cosmos.Data.SearchResult;
+import Cosmos.Data.WebPage;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
@@ -40,20 +42,32 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         }
     }
 
-    Component createContent(String query) {
+
+    private Component createWebEntry(WebPage page) {
+        Span span = new Span();
+        span.getElement().getThemeList().add("badge contrast");
+        span.setWidth("80%");
+        span.setHeight("175px");
+
+        Button button = new Button(page.url);
+        button.addClickListener(event -> UI.getCurrent().getPage().setLocation(page.url));
+        button.setWidth("80%");
+        span.add(button);
+
+        return span;
+    }
+
+    public Component createContent(String query) {
         VerticalLayout layout = new VerticalLayout();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         SearchResult result = Database.processQuery(query);
-        ArrayList<String> urls = new ArrayList<>(result.matches.keySet());
+        ArrayList<WebPage> pages = new ArrayList<>(result.matches.values());
 
         ArrayList<Component> components = new ArrayList<>();
 
-        for (String url : urls) {
-            Button button = new Button(url);
-            button.setWidth("80%");
-            button.addClickListener(event -> UI.getCurrent().getPage().setLocation(url));
-            components.add(button);
+        for (WebPage page : pages) {
+            components.add(createWebEntry(page));
         }
         addNestedContent(components, 0, layout, false);
 
