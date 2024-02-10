@@ -9,13 +9,17 @@ import java.util.ArrayList;
 
 public class Database {
 
-    private final static String url = "jdbc:mysql://localhost:3306/";
-    private final static String username = "root";
-    private final static String password = "1234";
     private static Connection conn;
+    private static Connection connForSearchQueries;
+
+    private static Connection connectToDatabase() throws SQLException {
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/", "root", "1234");
+    }
+
     public static void setup() {
         try {
-            conn = DriverManager.getConnection(url, username, password);
+            conn = connectToDatabase();
+            connForSearchQueries = connectToDatabase();
             System.out.println("Database connected!");
         } catch (SQLException e) {
             throw new IllegalStateException("Cannot connect the database!", e);
@@ -39,6 +43,13 @@ public class Database {
                 }
             }
 
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            Statement stmt = connForSearchQueries.createStatement();
+            stmt.execute("USE cosmos;");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -174,7 +185,7 @@ public class Database {
 
         for (String token : tokens) {
             try {
-                Statement stmt = conn.createStatement();
+                Statement stmt = connForSearchQueries.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT url, title FROM webcontent, webindex WHERE webcontent.id = webindex.contentID AND idx = '" + token + "';");
 
                 while (rs.next()) {
@@ -195,7 +206,7 @@ public class Database {
 
     public static int getWebContentCount() {
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connForSearchQueries.createStatement();
             ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM webcontent;");
 
             result.next();
@@ -206,7 +217,7 @@ public class Database {
     }
     public static int getWebIndexCount() {
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connForSearchQueries.createStatement();
             ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM webindex;");
 
             result.next();
