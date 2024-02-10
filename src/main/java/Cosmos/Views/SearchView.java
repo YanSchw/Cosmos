@@ -4,6 +4,7 @@ import Cosmos.Data.Database;
 import Cosmos.Data.SearchResult;
 import Cosmos.Data.WebPage;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
@@ -74,6 +75,7 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         search.addClickListener(event -> {
             UI.getCurrent().navigate("/search/" + input.getValue());
         });
+        search.addClickShortcut(Key.ENTER);
         layout.add(new HorizontalLayout(cosmos, input, search));
 
         SearchResult result = Database.processQuery(query.toLowerCase());
