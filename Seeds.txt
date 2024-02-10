@@ -1,5 +1,11 @@
-https://en.wikipedia.org/wiki/Main_Page
 https://en.wikipedia.org/wiki/World_Wide_Web
+https://en.wikipedia.org/wiki/List_of_online_encyclopedias
+https://en.wikipedia.org/wiki/List_of_web_directories
+https://en.wikipedia.org/wiki/List_of_most-visited_websites
+https://en.wikipedia.org/wiki/List_of_websites_founded_before_1995
+https://en.wikipedia.org/wiki/List_of_social_networking_services
+https://en.wikipedia.org/wiki/List_of_search_engines
+https://en.wikipedia.org/wiki/List_of_online_dictionaries
 https://curlie.org/
 https://www.google.com/
 https://stackoverflow.com/
