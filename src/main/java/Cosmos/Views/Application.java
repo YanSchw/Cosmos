@@ -17,7 +17,7 @@ public class Application implements AppShellConfigurator {
 	@EventListener(ApplicationReadyEvent.class)
 	public void init() {
 		Database.setup();
-		WebCrawler.init(4);
+		WebCrawler.init(8);
 	}
 
 	public static void main(String[] args) {
