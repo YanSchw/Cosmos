@@ -1,10 +1,12 @@
 package Cosmos.Views;
 
+import Cosmos.Data.Database;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H6;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -21,6 +23,8 @@ public class HomeView  extends AppLayout {
     Component createContent() {
         H1 cosmos = new H1("cosmos");
 
+        H6 info = new H6("Found " + Database.getWebContentCount() + " WebPages using " + Database.getWebIndexCount() + " Indicies.");
+
         HorizontalLayout layout = new HorizontalLayout();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
@@ -33,7 +37,10 @@ public class HomeView  extends AppLayout {
         });
         layout.add(search);
 
-        return new VerticalLayout(cosmos, layout);
+        VerticalLayout content = new VerticalLayout(cosmos, layout, info);
+        content.setAlignItems(FlexComponent.Alignment.CENTER);
+        content.setHeight("100%");
+        return content;
     }
 
 }

@@ -147,4 +147,27 @@ public class Database {
         return result;
     }
 
+    public static int getWebContentCount() {
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM webcontent;");
+
+            result.next();
+            return result.getInt(1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static int getWebIndexCount() {
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM webindex;");
+
+            result.next();
+            return result.getInt(1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
