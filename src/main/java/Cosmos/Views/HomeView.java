@@ -2,6 +2,7 @@ package Cosmos.Views;
 
 import Cosmos.Data.Database;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
@@ -35,6 +36,7 @@ public class HomeView  extends AppLayout {
         search.addClickListener(event -> {
            UI.getCurrent().navigate("/search/" + input.getValue());
         });
+        search.addClickShortcut(Key.ENTER);
         layout.add(search);
 
         VerticalLayout content = new VerticalLayout(cosmos, layout, info);
