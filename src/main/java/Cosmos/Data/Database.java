@@ -39,7 +39,7 @@ public class Database {
             stmt.execute("CREATE DATABASE IF NOT EXISTS cosmos;");
             stmt.execute("USE cosmos;");
             stmt.execute("CREATE TABLE IF NOT EXISTS webcontent(id INT PRIMARY KEY AUTO_INCREMENT, url VARCHAR(512) UNIQUE, title VARCHAR(512), depth INT, already_indexed BOOL);");
-            stmt.execute("CREATE TABLE IF NOT EXISTS webindex(id INT PRIMARY KEY AUTO_INCREMENT, contentID INT, idx VARCHAR(512), FOREIGN KEY (contentID) REFERENCES webcontent(id));");
+            stmt.execute("CREATE TABLE IF NOT EXISTS webindex(id INT PRIMARY KEY AUTO_INCREMENT, contentID INT, idx VARCHAR(1024), FOREIGN KEY (contentID) REFERENCES webcontent(id));");
 
             // Insert default data into Database if empty
             // Including Seed URLs

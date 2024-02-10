@@ -84,7 +84,7 @@ public class WebCrawler extends Thread {
         Elements elements = doc.getAllElements();
         for (Element element : elements) {
             String href = element.attr("href");
-            if (href.startsWith("http") && !href.contains("'") && !href.contains("\"") && href.length() < 512) {
+            if (href.startsWith("http") && !href.contains("'") && !href.contains("\"")&& !href.contains("%") && href.length() < 512) {
                 out.add(href);
             }
         }
@@ -108,6 +108,7 @@ public class WebCrawler extends Thread {
             if (token.contains("=")) continue;
             if (token.contains("[")) continue;
             if (token.contains("]")) continue;
+            if (token.length() >= 1024) continue;
 
             out.add(token.toLowerCase());
         }
