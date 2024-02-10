@@ -75,7 +75,7 @@ public class WebCrawler extends Thread {
 
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Transaction Rollback.");
             reconnectDatabase();
         }
     }
