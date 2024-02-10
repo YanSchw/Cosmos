@@ -18,7 +18,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
-
 import java.util.ArrayList;
 
 @Route("/search")
@@ -54,12 +53,12 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         span.setHeight("175px");
 
         Button title = new Button(new Span(page.title));
-        title.addClickListener(event -> UI.getCurrent().getPage().setLocation(page.url));
+        title.addClickListener(event -> UI.getCurrent().getPage().setLocation(page.getURL()));
 
-        Span url = new Span(page.url);
+        Span url = new Span(page.getURL());
         url.setWidth("95%");
 
-        VerticalLayout layout = new VerticalLayout(title, url);
+        VerticalLayout layout = new VerticalLayout(title, url, new Span("Score: " + page.getScore()));
         span.add(layout);
         return span;
     }
@@ -78,7 +77,10 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         layout.add(new HorizontalLayout(cosmos, input, search));
 
         SearchResult result = Database.processQuery(query.toLowerCase());
+        layout.add(new H6("Found " + result.matches.size() + " Entries in " + result.elapsedTime + " Seconds."));
+
         ArrayList<WebPage> pages = new ArrayList<>(result.matches.values());
+        pages.sort((a, b) -> b.getScore() - a.getScore());
 
         ArrayList<Component> components = new ArrayList<>();
 

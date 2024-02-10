@@ -1,6 +1,8 @@
 package Cosmos.Data;
 
 import java.sql.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 
 public class Database {
@@ -49,18 +51,26 @@ public class Database {
             throw new RuntimeException(e);
         }
     }
-    public static void insertNewURL(String url, String title) {
+    public static void insertNewURL(String url) {
         if (url.contains("'") || url.contains("\"")) {
             return;
         }
-        title = title.replaceAll("'", "");
         try {
             Statement stmt = conn.createStatement();
             ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE url = '" + url + "' LIMIT 1;");
 
             if (!result.next()) {
-                stmt.execute("INSERT INTO webcontent VALUES (0, '" + url + "', '" + title + "', false);");
+                stmt.execute("INSERT INTO webcontent VALUES (0, '" + url + "', 'No Title', false);");
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static void updateTitle(String url, String title) {
+        title = title.replaceAll("'", "");
+        try {
+            Statement stmt = conn.createStatement();
+            stmt.execute("UPDATE webcontent SET title = '" + title + "' WHERE url = '" + url + "';");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -68,7 +78,7 @@ public class Database {
     public static void updateURLAlreadyIndexed(String url, boolean alreadyIndexed) {
         try {
             Statement stmt = conn.createStatement();
-            stmt.execute("UPDATE webcontent SET already_indexed = " + (alreadyIndexed ? "true" : "false") + " WHERE url = '" + url + "'");
+            stmt.execute("UPDATE webcontent SET already_indexed = " + (alreadyIndexed ? "true" : "false") + " WHERE url = '" + url + "';");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -128,6 +138,7 @@ public class Database {
     }
     public static SearchResult processTokens(ArrayList<String> tokens) {
         SearchResult result = new SearchResult();
+        Instant start = Instant.now();
 
         for (String token : tokens) {
             try {
@@ -142,6 +153,10 @@ public class Database {
                 throw new RuntimeException(e);
             }
         }
+
+        Instant end = Instant.now();
+        long millis = Duration.between(start, end).toMillis();
+        result.elapsedTime = (millis/1000) + "." + (millis%1000);
 
         return result;
     }

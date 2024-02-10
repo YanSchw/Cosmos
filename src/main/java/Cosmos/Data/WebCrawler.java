@@ -41,10 +41,11 @@ public class WebCrawler extends Thread {
         }
 
         Document doc = Jsoup.parse(html);
+        Database.updateTitle(url, doc.title());
 
         ArrayList<String> hrefs = extractHRefFromHTML(html);
         for (String href : hrefs) {
-            Database.insertNewURL(href, doc.title());
+            Database.insertNewURL(href);
         }
         ArrayList<String> tokens = extractTokensFromHTML(html);
         Database.deleteIndiciesForURL(url);
