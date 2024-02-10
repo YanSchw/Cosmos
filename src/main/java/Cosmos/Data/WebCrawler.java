@@ -11,6 +11,12 @@ import java.util.Scanner;
 
 public class WebCrawler extends Thread {
 
+    private Database database;
+
+    public WebCrawler() {
+        database = new Database();
+    }
+
     @Override
     public void run() {
         super.run();
@@ -18,14 +24,14 @@ public class WebCrawler extends Thread {
         System.out.println("Starting WebCrawler...");
 
         while (true) {
-            indexWebPage(Database.getNextReadyURL());
+            indexWebPage(database.getNextReadyURL());
         }
     }
 
     private void indexWebPage(String url) {
         System.out.println("Indexing " + url);
         //Database.updateURLAlreadyIndexed(url, true);
-        int depth = Database.getDepthFromURL(url);
+        int depth = database.getDepthFromURL(url);
         String html = null;
         URLConnection connection = null;
         try {
@@ -35,7 +41,8 @@ public class WebCrawler extends Thread {
             html = scanner.next();
             scanner.close();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println("Indexing " + url + " failed.");
+            return;
         }
 
         if (html == null) {
@@ -43,16 +50,16 @@ public class WebCrawler extends Thread {
         }
 
         Document doc = Jsoup.parse(html);
-        Database.updateTitle(url, doc.title());
+        database.updateTitle(url, doc.title());
 
         ArrayList<String> hrefs = extractHRefFromDoc(doc);
         /*for (String href : hrefs) {
             Database.insertNewURL(href, depth + 1);
         }*/
-        Database.insertBulkURLs(hrefs, depth + 1);
+        database.insertBulkURLs(hrefs, depth + 1);
         ArrayList<String> tokens = extractTokensFromDoc(doc);
-        Database.deleteIndiciesForURL(url);
-        Database.insertIndicies(url, tokens);
+        database.deleteIndiciesForURL(url);
+        database.insertIndicies(url, tokens);
     }
     private ArrayList<String> extractHRefFromDoc(Document doc) {
         ArrayList<String> out = new ArrayList<>();

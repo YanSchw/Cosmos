@@ -9,8 +9,18 @@ import java.util.ArrayList;
 
 public class Database {
 
-    private static Connection conn;
-    private static Connection connForSearchQueries;
+    private static Connection connectionMain;
+    private Connection connectionDatabase;
+
+    public Database() {
+        try {
+            connectionDatabase = connectToDatabase();
+            Statement stmt = connectionDatabase.createStatement();
+            stmt.execute("USE cosmos;");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static Connection connectToDatabase() throws SQLException {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/", "root", "1234");
@@ -18,15 +28,14 @@ public class Database {
 
     public static void setup() {
         try {
-            conn = connectToDatabase();
-            connForSearchQueries = connectToDatabase();
+            connectionMain = connectToDatabase();
             System.out.println("Database connected!");
         } catch (SQLException e) {
             throw new IllegalStateException("Cannot connect the database!", e);
         }
 
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionMain.createStatement();
             stmt.execute("CREATE DATABASE IF NOT EXISTS cosmos;");
             stmt.execute("USE cosmos;");
             stmt.execute("CREATE TABLE IF NOT EXISTS webcontent(id INT PRIMARY KEY AUTO_INCREMENT, url VARCHAR(512) UNIQUE, title VARCHAR(512), depth INT, already_indexed BOOL);");
@@ -46,34 +55,31 @@ public class Database {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        try {
-            Statement stmt = connForSearchQueries.createStatement();
-            stmt.execute("USE cosmos;");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
-    public synchronized static String getNextReadyURL() {
-        try {
-            Statement stmt = conn.createStatement();
-            ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE already_indexed = false ORDER BY depth ASC LIMIT 1;");
+    private static final Object mutex = new Object();
+    public String getNextReadyURL() {
+        synchronized (mutex) {
+            try {
+                Statement stmt = connectionDatabase.createStatement();
+                ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE already_indexed = false ORDER BY depth ASC LIMIT 1;");
 
-            result.next();
-            String url = result.getString(1);
-            Database.updateURLAlreadyIndexed(url, true);
-            return url;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+                result.next();
+                String url = result.getString(1);
+                updateURLAlreadyIndexed(url, true);
+                return url;
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
+    /*
     public static void insertNewURL(String url, int depth) {
         if (url.contains("'") || url.contains("\"")) {
             return;
         }
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE url = '" + url + "' LIMIT 1;");
 
             if (!result.next()) {
@@ -90,13 +96,14 @@ public class Database {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-    public static void insertBulkURLs(ArrayList<String> urls, int depth) {
+    }*/
+
+    public void insertBulkURLs(ArrayList<String> urls, int depth) {
         if (urls.isEmpty()) {
             return;
         }
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             StringBuilder sql = new StringBuilder("INSERT IGNORE INTO webcontent VALUES ");
             for (int i = 0; i < urls.size(); i++) {
                 sql.append("(0, '").append(urls.get(i)).append("', 'No Title', ").append(depth).append(", false)");
@@ -109,26 +116,26 @@ public class Database {
             throw new RuntimeException(e);
         }
     }
-    public static void updateTitle(String url, String title) {
+    public void updateTitle(String url, String title) {
         title = title.replaceAll("'", "");
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             stmt.execute("UPDATE webcontent SET title = '" + title + "' WHERE url = '" + url + "';");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-    public static void updateURLAlreadyIndexed(String url, boolean alreadyIndexed) {
+    public void updateURLAlreadyIndexed(String url, boolean alreadyIndexed) {
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             stmt.execute("UPDATE webcontent SET already_indexed = " + (alreadyIndexed ? "true" : "false") + " WHERE url = '" + url + "';");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-    public static int getIdFromURL(String url) {
+    public int getIdFromURL(String url) {
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             ResultSet result = stmt.executeQuery("SELECT id FROM webcontent WHERE url = '" + url + "' LIMIT 1;");
 
             result.next();
@@ -138,10 +145,10 @@ public class Database {
             throw new RuntimeException(e);
         }
     }
-    public static void deleteIndiciesForURL(String url) {
+    public void deleteIndiciesForURL(String url) {
         int id = getIdFromURL(url);
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             stmt.execute("DELETE FROM webindex WHERE contentID = " + id + ";");
 
 
@@ -154,10 +161,10 @@ public class Database {
         idx = idx.replaceAll("\"", "");
         return idx;
     }
-    public static void insertIndicies(String url, ArrayList<String> indicies) {
+    public void insertIndicies(String url, ArrayList<String> indicies) {
         int id = getIdFromURL(url);
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             StringBuilder sql = new StringBuilder("INSERT INTO webindex VALUES ");
             for (int i = 0; i < indicies.size(); i++) {
                 sql.append("(0, ").append(id).append(", '").append(prepareIndex(indicies.get(i))).append("')");
@@ -185,7 +192,7 @@ public class Database {
 
         for (String token : tokens) {
             try {
-                Statement stmt = connForSearchQueries.createStatement();
+                Statement stmt = connectionMain.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT url, title FROM webcontent, webindex WHERE webcontent.id = webindex.contentID AND idx = '" + token + "';");
 
                 while (rs.next()) {
@@ -206,7 +213,7 @@ public class Database {
 
     public static int getWebContentCount() {
         try {
-            Statement stmt = connForSearchQueries.createStatement();
+            Statement stmt = connectionMain.createStatement();
             ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM webcontent;");
 
             result.next();
@@ -217,7 +224,7 @@ public class Database {
     }
     public static int getWebIndexCount() {
         try {
-            Statement stmt = connForSearchQueries.createStatement();
+            Statement stmt = connectionMain.createStatement();
             ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM webindex;");
 
             result.next();
@@ -227,9 +234,9 @@ public class Database {
         }
     }
 
-    public static int getDepthFromURL(String url) {
+    public int getDepthFromURL(String url) {
         try {
-            Statement stmt = conn.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             ResultSet result = stmt.executeQuery("SELECT depth FROM webcontent WHERE url = '" + url + "';");
 
             result.next();
