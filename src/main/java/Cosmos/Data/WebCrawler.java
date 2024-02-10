@@ -85,7 +85,7 @@ public class WebCrawler extends Thread {
             if (token.contains("[")) continue;
             if (token.contains("]")) continue;
 
-            out.add(token);
+            out.add(token.toLowerCase());
         }
 
         return out;
