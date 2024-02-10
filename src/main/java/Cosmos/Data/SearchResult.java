@@ -6,10 +6,11 @@ public class SearchResult {
 
     public HashMap<String, WebPage> matches = new HashMap<>();
 
-    public void insertURL(String url) {
+    public void insert(String url, String title) {
         if (!matches.containsKey(url)) {
             WebPage page = new WebPage();
             page.url = url;
+            page.title = title;
             matches.put(url, page);
         }
 

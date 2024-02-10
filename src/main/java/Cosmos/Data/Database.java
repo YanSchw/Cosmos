@@ -21,7 +21,7 @@ public class Database {
             Statement stmt = conn.createStatement();
             stmt.execute("CREATE DATABASE IF NOT EXISTS cosmos;");
             stmt.execute("USE cosmos;");
-            stmt.execute("CREATE TABLE IF NOT EXISTS webcontent(id INT PRIMARY KEY AUTO_INCREMENT, url VARCHAR(1024), date DATE);");
+            stmt.execute("CREATE TABLE IF NOT EXISTS webcontent(id INT PRIMARY KEY AUTO_INCREMENT, url VARCHAR(1024), title VARCHAR(1024), already_indexed BOOL);");
             stmt.execute("CREATE TABLE IF NOT EXISTS webindex(id INT PRIMARY KEY AUTO_INCREMENT, contentID INT, idx VARCHAR(1024), FOREIGN KEY (contentID) REFERENCES webcontent(id));");
 
             // Insert default data into Database if empty
@@ -29,7 +29,7 @@ public class Database {
             ResultSet result = stmt.executeQuery("SELECT * FROM webcontent LIMIT 1;");
             if (!result.next()) {
                 //stmt.execute("INSERT INTO webcontent VALUES (0, 'http://www.google.com', '2000-01-01');");
-                stmt.execute("INSERT INTO webcontent VALUES (0, 'https://en.wikipedia.org/wiki/World_Wide_Web', '2000-01-01');");
+                stmt.execute("INSERT INTO webcontent VALUES (0, 'https://en.wikipedia.org/wiki/World_Wide_Web', 'World_Wide_Web', false);");
             }
 
         } catch (SQLException e) {
@@ -37,10 +37,10 @@ public class Database {
         }
     }
 
-    public static String getOldestURL() {
+    public static String getNextReadyURL() {
         try {
             Statement stmt = conn.createStatement();
-            ResultSet result = stmt.executeQuery("SELECT url FROM webcontent ORDER BY date ASC LIMIT 1;");
+            ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE already_indexed = false LIMIT 1;");
 
             result.next();
             return result.getString(1);
@@ -49,27 +49,26 @@ public class Database {
             throw new RuntimeException(e);
         }
     }
-    public static void insertNewURL(String url) {
+    public static void insertNewURL(String url, String title) {
         if (url.contains("'") || url.contains("\"")) {
             return;
         }
+        title = title.replaceAll("'", "");
         try {
             Statement stmt = conn.createStatement();
             ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE url = '" + url + "' LIMIT 1;");
 
             if (!result.next()) {
-                stmt.execute("INSERT INTO webcontent VALUES (0, '" + url + "', '1999-01-01');");
+                stmt.execute("INSERT INTO webcontent VALUES (0, '" + url + "', '" + title + "', false);");
             }
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-    public static void updateURLDate(String url) {
+    public static void updateURLAlreadyIndexed(String url, boolean alreadyIndexed) {
         try {
             Statement stmt = conn.createStatement();
-            stmt.execute("UPDATE webcontent SET date = '2024-02-08' WHERE url = '" + url + "'");
-
+            stmt.execute("UPDATE webcontent SET already_indexed = " + (alreadyIndexed ? "true" : "false") + " WHERE url = '" + url + "'");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -133,10 +132,10 @@ public class Database {
         for (String token : tokens) {
             try {
                 Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT url FROM webcontent, webindex WHERE webcontent.id = webindex.contentID AND idx = '" + token + "';");
+                ResultSet rs = stmt.executeQuery("SELECT url, title FROM webcontent, webindex WHERE webcontent.id = webindex.contentID AND idx = '" + token + "';");
 
                 while (rs.next()) {
-                    result.insertURL(rs.getString(1));
+                    result.insert(rs.getString(1), rs.getString(2));
                 }
 
             } catch (SQLException e) {

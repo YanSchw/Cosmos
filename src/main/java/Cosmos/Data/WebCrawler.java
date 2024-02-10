@@ -3,7 +3,6 @@ package Cosmos.Data;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -18,17 +17,17 @@ public class WebCrawler extends Thread {
         System.out.println("Starting WebCrawler...");
 
         while (true) {
-            indexWebPage(Database.getOldestURL());
+            indexWebPage(Database.getNextReadyURL());
         }
     }
 
     private void indexWebPage(String url) {
         System.out.println("Indexing " + url);
-        Database.updateURLDate(url);
+        Database.updateURLAlreadyIndexed(url, true);
         String html = null;
         URLConnection connection = null;
         try {
-            connection =  new URL(url).openConnection();
+            connection = new URL(url).openConnection();
             Scanner scanner = new Scanner(connection.getInputStream());
             scanner.useDelimiter("\\Z");
             html = scanner.next();
@@ -41,9 +40,11 @@ public class WebCrawler extends Thread {
             return;
         }
 
+        Document doc = Jsoup.parse(html);
+
         ArrayList<String> hrefs = extractHRefFromHTML(html);
         for (String href : hrefs) {
-            Database.insertNewURL(href);
+            Database.insertNewURL(href, doc.title());
         }
         ArrayList<String> tokens = extractTokensFromHTML(html);
         Database.deleteIndiciesForURL(url);

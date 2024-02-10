@@ -49,11 +49,14 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         span.setWidth("80%");
         span.setHeight("175px");
 
-        Button button = new Button(page.url);
-        button.addClickListener(event -> UI.getCurrent().getPage().setLocation(page.url));
-        button.setWidth("80%");
-        span.add(button);
+        Button title = new Button(new Span(page.title));
+        title.addClickListener(event -> UI.getCurrent().getPage().setLocation(page.url));
 
+        Span url = new Span(page.url);
+        url.setWidth("95%");
+
+        VerticalLayout layout = new VerticalLayout(title, url);
+        span.add(layout);
         return span;
     }
 
