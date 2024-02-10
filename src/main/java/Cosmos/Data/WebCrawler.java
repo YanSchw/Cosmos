@@ -24,6 +24,7 @@ public class WebCrawler extends Thread {
     private void indexWebPage(String url) {
         System.out.println("Indexing " + url);
         Database.updateURLAlreadyIndexed(url, true);
+        int depth = Database.getDepthFromURL(url);
         String html = null;
         URLConnection connection = null;
         try {
@@ -45,7 +46,7 @@ public class WebCrawler extends Thread {
 
         ArrayList<String> hrefs = extractHRefFromHTML(html);
         for (String href : hrefs) {
-            Database.insertNewURL(href);
+            Database.insertNewURL(href, depth + 1);
         }
         ArrayList<String> tokens = extractTokensFromHTML(html);
         Database.deleteIndiciesForURL(url);

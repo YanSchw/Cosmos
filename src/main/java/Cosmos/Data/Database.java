@@ -1,5 +1,7 @@
 package Cosmos.Data;
 
+import Cosmos.Common.Seeds;
+
 import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;
@@ -23,15 +25,18 @@ public class Database {
             Statement stmt = conn.createStatement();
             stmt.execute("CREATE DATABASE IF NOT EXISTS cosmos;");
             stmt.execute("USE cosmos;");
-            stmt.execute("CREATE TABLE IF NOT EXISTS webcontent(id INT PRIMARY KEY AUTO_INCREMENT, url VARCHAR(1024), title VARCHAR(1024), already_indexed BOOL);");
+            stmt.execute("CREATE TABLE IF NOT EXISTS webcontent(id INT PRIMARY KEY AUTO_INCREMENT, url VARCHAR(1024), title VARCHAR(1024), depth INT, already_indexed BOOL);");
             stmt.execute("CREATE TABLE IF NOT EXISTS webindex(id INT PRIMARY KEY AUTO_INCREMENT, contentID INT, idx VARCHAR(1024), FOREIGN KEY (contentID) REFERENCES webcontent(id));");
 
             // Insert default data into Database if empty
             // Including Seed URLs
             ResultSet result = stmt.executeQuery("SELECT * FROM webcontent LIMIT 1;");
             if (!result.next()) {
-                //stmt.execute("INSERT INTO webcontent VALUES (0, 'http://www.google.com', '2000-01-01');");
-                stmt.execute("INSERT INTO webcontent VALUES (0, 'https://en.wikipedia.org/wiki/World_Wide_Web', 'World_Wide_Web', false);");
+                ArrayList<String> seeds = Seeds.getSeeds();
+                for (String seed : seeds) {
+                    System.out.println("Inserting default seed URL: " + seed);
+                    stmt.execute("INSERT INTO webcontent VALUES (0, '"+seed+"', '', 0, false);");
+                }
             }
 
         } catch (SQLException e) {
@@ -42,7 +47,7 @@ public class Database {
     public static String getNextReadyURL() {
         try {
             Statement stmt = conn.createStatement();
-            ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE already_indexed = false LIMIT 1;");
+            ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE already_indexed = false ORDER BY depth ASC LIMIT 1;");
 
             result.next();
             return result.getString(1);
@@ -51,7 +56,7 @@ public class Database {
             throw new RuntimeException(e);
         }
     }
-    public static void insertNewURL(String url) {
+    public static void insertNewURL(String url, int depth) {
         if (url.contains("'") || url.contains("\"")) {
             return;
         }
@@ -60,7 +65,15 @@ public class Database {
             ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE url = '" + url + "' LIMIT 1;");
 
             if (!result.next()) {
-                stmt.execute("INSERT INTO webcontent VALUES (0, '" + url + "', 'No Title', false);");
+                stmt.execute("INSERT INTO webcontent VALUES (0, '" + url + "', 'No Title', " + depth + ", false);");
+            } else {
+                // Maybe update depth
+                ResultSet resultDepth = stmt.executeQuery("SELECT depth FROM webcontent WHERE url = '" + url + "' LIMIT 1;");
+                resultDepth.next();
+                if (resultDepth.getInt(1) > depth) {
+                    stmt.execute("UPDATE webcontent SET depth = " + depth + " WHERE url = '" + url + "';");
+                    // TODO: reset already_indexed
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -115,11 +128,11 @@ public class Database {
         int id = getIdFromURL(url);
         try {
             Statement stmt = conn.createStatement();
-            String sql = "INSERT INTO webindex VALUES ";
+            StringBuilder sql = new StringBuilder("INSERT INTO webindex VALUES ");
             for (int i = 0; i < indicies.size(); i++) {
-                sql += "(0, " +id+ ", '" + prepareIndex(indicies.get(i)) + "')";
+                sql.append("(0, ").append(id).append(", '").append(prepareIndex(indicies.get(i))).append("')");
                 if (i < indicies.size() - 1) {
-                    sql += ", ";
+                    sql.append(", ");
                 }
             }
             stmt.execute(sql + ";");
@@ -184,4 +197,15 @@ public class Database {
         }
     }
 
+    public static int getDepthFromURL(String url) {
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT depth FROM webcontent WHERE url = '" + url + "';");
+
+            result.next();
+            return result.getInt(1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
