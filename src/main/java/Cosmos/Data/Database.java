@@ -25,8 +25,8 @@ public class Database {
             Statement stmt = conn.createStatement();
             stmt.execute("CREATE DATABASE IF NOT EXISTS cosmos;");
             stmt.execute("USE cosmos;");
-            stmt.execute("CREATE TABLE IF NOT EXISTS webcontent(id INT PRIMARY KEY AUTO_INCREMENT, url VARCHAR(1024), title VARCHAR(1024), depth INT, already_indexed BOOL);");
-            stmt.execute("CREATE TABLE IF NOT EXISTS webindex(id INT PRIMARY KEY AUTO_INCREMENT, contentID INT, idx VARCHAR(1024), FOREIGN KEY (contentID) REFERENCES webcontent(id));");
+            stmt.execute("CREATE TABLE IF NOT EXISTS webcontent(id INT PRIMARY KEY AUTO_INCREMENT, url VARCHAR(512) UNIQUE, title VARCHAR(512), depth INT, already_indexed BOOL);");
+            stmt.execute("CREATE TABLE IF NOT EXISTS webindex(id INT PRIMARY KEY AUTO_INCREMENT, contentID INT, idx VARCHAR(512), FOREIGN KEY (contentID) REFERENCES webcontent(id));");
 
             // Insert default data into Database if empty
             // Including Seed URLs
@@ -44,14 +44,15 @@ public class Database {
         }
     }
 
-    public static String getNextReadyURL() {
+    public synchronized static String getNextReadyURL() {
         try {
             Statement stmt = conn.createStatement();
             ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE already_indexed = false ORDER BY depth ASC LIMIT 1;");
 
             result.next();
-            return result.getString(1);
-
+            String url = result.getString(1);
+            Database.updateURLAlreadyIndexed(url, true);
+            return url;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -75,6 +76,24 @@ public class Database {
                     // TODO: reset already_indexed
                 }
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static void insertBulkURLs(ArrayList<String> urls, int depth) {
+        if (urls.isEmpty()) {
+            return;
+        }
+        try {
+            Statement stmt = conn.createStatement();
+            StringBuilder sql = new StringBuilder("INSERT IGNORE INTO webcontent VALUES ");
+            for (int i = 0; i < urls.size(); i++) {
+                sql.append("(0, '").append(urls.get(i)).append("', 'No Title', ").append(depth).append(", false)");
+                if (i < urls.size() - 1) {
+                    sql.append(", ");
+                }
+            }
+            stmt.execute(sql + ";");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

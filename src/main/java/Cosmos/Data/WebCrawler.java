@@ -2,6 +2,7 @@ package Cosmos.Data;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.net.URL;
 import java.net.URLConnection;
@@ -23,7 +24,7 @@ public class WebCrawler extends Thread {
 
     private void indexWebPage(String url) {
         System.out.println("Indexing " + url);
-        Database.updateURLAlreadyIndexed(url, true);
+        //Database.updateURLAlreadyIndexed(url, true);
         int depth = Database.getDepthFromURL(url);
         String html = null;
         URLConnection connection = null;
@@ -45,9 +46,10 @@ public class WebCrawler extends Thread {
         Database.updateTitle(url, doc.title());
 
         ArrayList<String> hrefs = extractHRefFromDoc(doc);
-        for (String href : hrefs) {
+        /*for (String href : hrefs) {
             Database.insertNewURL(href, depth + 1);
-        }
+        }*/
+        Database.insertBulkURLs(hrefs, depth + 1);
         ArrayList<String> tokens = extractTokensFromDoc(doc);
         Database.deleteIndiciesForURL(url);
         Database.insertIndicies(url, tokens);
@@ -55,9 +57,9 @@ public class WebCrawler extends Thread {
     private ArrayList<String> extractHRefFromDoc(Document doc) {
         ArrayList<String> out = new ArrayList<>();
         Elements elements = doc.getAllElements();
-        for (int i = 0; i < elements.size(); i++) {
-            String href = elements.get(i).attr("href");
-            if (!href.isEmpty() && href.startsWith("http")) {
+        for (Element element : elements) {
+            String href = element.attr("href");
+            if (href.startsWith("http") && !href.contains("'") && !href.contains("\"") && href.length() < 512) {
                 out.add(href);
             }
         }
@@ -88,10 +90,11 @@ public class WebCrawler extends Thread {
         return out;
     }
 
-    private static WebCrawler instance;
-    public static void init() {
-        instance = new WebCrawler();
-        instance.start();
+    public static void init(int count) {
+        for (int i = 0; i < count; i++) {
+            WebCrawler instance = new WebCrawler();
+            instance.start();
+        }
     }
 
 }
