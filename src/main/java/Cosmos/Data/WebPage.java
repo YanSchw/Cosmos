@@ -17,7 +17,7 @@ public class WebPage {
         if (url.length() >= 500) {
             return 0;
         }
-        return 10_000 - url.length() * 20;
+        return 20_000 - url.length() * 40;
     }
 
     public int getScore() {
