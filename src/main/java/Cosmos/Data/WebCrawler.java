@@ -6,6 +6,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -14,6 +15,10 @@ public class WebCrawler extends Thread {
     private Database database;
 
     public WebCrawler() {
+        reconnectDatabase();
+    }
+
+    private void reconnectDatabase() {
         database = new Database();
     }
 
@@ -24,42 +29,55 @@ public class WebCrawler extends Thread {
         System.out.println("Starting WebCrawler...");
 
         while (true) {
-            indexWebPage(database.getNextReadyURL());
+            try {
+                indexWebPage(database.getNextReadyURL());
+            } catch (SQLException e) {
+                reconnectDatabase();
+            }
         }
     }
 
     private void indexWebPage(String url) {
         System.out.println("Indexing " + url);
-        //Database.updateURLAlreadyIndexed(url, true);
-        int depth = database.getDepthFromURL(url);
-        String html = null;
-        URLConnection connection = null;
+
         try {
-            connection = new URL(url).openConnection();
-            Scanner scanner = new Scanner(connection.getInputStream());
-            scanner.useDelimiter("\\Z");
-            html = scanner.next();
-            scanner.close();
-        } catch (Exception ex) {
-            System.out.println("Indexing " + url + " failed.");
-            return;
+
+            int depth = database.getDepthFromURL(url);
+            String html = null;
+            URLConnection connection = null;
+            try {
+                connection = new URL(url).openConnection();
+                Scanner scanner = new Scanner(connection.getInputStream());
+                scanner.useDelimiter("\\Z");
+                html = scanner.next();
+                scanner.close();
+            } catch (Exception ex) {
+                System.out.println("Indexing " + url + " failed.");
+                return;
+            }
+
+            if (html == null) {
+                return;
+            }
+
+            Document doc = Jsoup.parse(html);
+            database.updateTitle(url, doc.title());
+
+            ArrayList<String> hrefs = extractHRefFromDoc(doc);
+            /*for (String href : hrefs) {
+                Database.insertNewURL(href, depth + 1);
+            }*/
+            database.insertBulkURLs(hrefs, depth + 1);
+            ArrayList<String> tokens = extractTokensFromDoc(doc);
+            database.deleteIndiciesForURL(url);
+            database.insertIndicies(url, tokens);
+
+
         }
-
-        if (html == null) {
-            return;
+        catch (SQLException e) {
+            e.printStackTrace();
+            reconnectDatabase();
         }
-
-        Document doc = Jsoup.parse(html);
-        database.updateTitle(url, doc.title());
-
-        ArrayList<String> hrefs = extractHRefFromDoc(doc);
-        /*for (String href : hrefs) {
-            Database.insertNewURL(href, depth + 1);
-        }*/
-        database.insertBulkURLs(hrefs, depth + 1);
-        ArrayList<String> tokens = extractTokensFromDoc(doc);
-        database.deleteIndiciesForURL(url);
-        database.insertIndicies(url, tokens);
     }
     private ArrayList<String> extractHRefFromDoc(Document doc) {
         ArrayList<String> out = new ArrayList<>();

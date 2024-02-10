@@ -58,19 +58,15 @@ public class Database {
     }
 
     private static final Object mutex = new Object();
-    public String getNextReadyURL() {
+    public String getNextReadyURL() throws SQLException {
         synchronized (mutex) {
-            try {
-                Statement stmt = connectionDatabase.createStatement();
-                ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE already_indexed = false ORDER BY depth ASC LIMIT 1;");
+            Statement stmt = connectionDatabase.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT url FROM webcontent WHERE already_indexed = false ORDER BY depth ASC LIMIT 1;");
 
-                result.next();
-                String url = result.getString(1);
-                updateURLAlreadyIndexed(url, true);
-                return url;
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            result.next();
+            String url = result.getString(1);
+            updateURLAlreadyIndexed(url, true);
+            return url;
         }
     }
     /*
@@ -98,84 +94,57 @@ public class Database {
         }
     }*/
 
-    public void insertBulkURLs(ArrayList<String> urls, int depth) {
+    public void insertBulkURLs(ArrayList<String> urls, int depth) throws SQLException {
         if (urls.isEmpty()) {
             return;
         }
-        try {
-            Statement stmt = connectionDatabase.createStatement();
-            StringBuilder sql = new StringBuilder("INSERT IGNORE INTO webcontent VALUES ");
-            for (int i = 0; i < urls.size(); i++) {
-                sql.append("(0, '").append(urls.get(i)).append("', 'No Title', ").append(depth).append(", false)");
-                if (i < urls.size() - 1) {
-                    sql.append(", ");
-                }
+        Statement stmt = connectionDatabase.createStatement();
+        StringBuilder sql = new StringBuilder("INSERT IGNORE INTO webcontent VALUES ");
+        for (int i = 0; i < urls.size(); i++) {
+            sql.append("(0, '").append(urls.get(i)).append("', 'No Title', ").append(depth).append(", false)");
+            if (i < urls.size() - 1) {
+                sql.append(", ");
             }
-            stmt.execute(sql + ";");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
+        stmt.execute(sql + ";");
     }
-    public void updateTitle(String url, String title) {
+    public void updateTitle(String url, String title) throws SQLException {
         title = title.replaceAll("'", "");
-        try {
-            Statement stmt = connectionDatabase.createStatement();
-            stmt.execute("UPDATE webcontent SET title = '" + title + "' WHERE url = '" + url + "';");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        Statement stmt = connectionDatabase.createStatement();
+        stmt.execute("UPDATE webcontent SET title = '" + title + "' WHERE url = '" + url + "';");
     }
-    public void updateURLAlreadyIndexed(String url, boolean alreadyIndexed) {
-        try {
-            Statement stmt = connectionDatabase.createStatement();
-            stmt.execute("UPDATE webcontent SET already_indexed = " + (alreadyIndexed ? "true" : "false") + " WHERE url = '" + url + "';");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public void updateURLAlreadyIndexed(String url, boolean alreadyIndexed) throws SQLException {
+        Statement stmt = connectionDatabase.createStatement();
+        stmt.execute("UPDATE webcontent SET already_indexed = " + (alreadyIndexed ? "true" : "false") + " WHERE url = '" + url + "';");
     }
-    public int getIdFromURL(String url) {
-        try {
-            Statement stmt = connectionDatabase.createStatement();
-            ResultSet result = stmt.executeQuery("SELECT id FROM webcontent WHERE url = '" + url + "' LIMIT 1;");
+    public int getIdFromURL(String url) throws SQLException {
+        Statement stmt = connectionDatabase.createStatement();
+        ResultSet result = stmt.executeQuery("SELECT id FROM webcontent WHERE url = '" + url + "' LIMIT 1;");
 
-            result.next();
-            return result.getInt(1);
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        result.next();
+        return result.getInt(1);
     }
-    public void deleteIndiciesForURL(String url) {
+    public void deleteIndiciesForURL(String url) throws SQLException {
         int id = getIdFromURL(url);
-        try {
-            Statement stmt = connectionDatabase.createStatement();
-            stmt.execute("DELETE FROM webindex WHERE contentID = " + id + ";");
-
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        Statement stmt = connectionDatabase.createStatement();
+        stmt.execute("DELETE FROM webindex WHERE contentID = " + id + ";");
     }
     private static String prepareIndex(String idx) {
         idx = idx.replaceAll("'", "");
         idx = idx.replaceAll("\"", "");
         return idx;
     }
-    public void insertIndicies(String url, ArrayList<String> indicies) {
+    public void insertIndicies(String url, ArrayList<String> indicies) throws SQLException {
         int id = getIdFromURL(url);
-        try {
-            Statement stmt = connectionDatabase.createStatement();
-            StringBuilder sql = new StringBuilder("INSERT INTO webindex VALUES ");
-            for (int i = 0; i < indicies.size(); i++) {
-                sql.append("(0, ").append(id).append(", '").append(prepareIndex(indicies.get(i))).append("')");
-                if (i < indicies.size() - 1) {
-                    sql.append(", ");
-                }
+        Statement stmt = connectionDatabase.createStatement();
+        StringBuilder sql = new StringBuilder("INSERT INTO webindex VALUES ");
+        for (int i = 0; i < indicies.size(); i++) {
+            sql.append("(0, ").append(id).append(", '").append(prepareIndex(indicies.get(i))).append("')");
+            if (i < indicies.size() - 1) {
+                sql.append(", ");
             }
-            stmt.execute(sql + ";");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
+        stmt.execute(sql + ";");
     }
 
     public static SearchResult processQuery(String query) {
@@ -234,15 +203,11 @@ public class Database {
         }
     }
 
-    public int getDepthFromURL(String url) {
-        try {
-            Statement stmt = connectionDatabase.createStatement();
-            ResultSet result = stmt.executeQuery("SELECT depth FROM webcontent WHERE url = '" + url + "';");
+    public int getDepthFromURL(String url) throws SQLException {
+        Statement stmt = connectionDatabase.createStatement();
+        ResultSet result = stmt.executeQuery("SELECT depth FROM webcontent WHERE url = '" + url + "';");
 
-            result.next();
-            return result.getInt(1);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        result.next();
+        return result.getInt(1);
     }
 }
