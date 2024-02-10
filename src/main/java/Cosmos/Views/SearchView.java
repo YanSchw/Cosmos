@@ -8,9 +8,13 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H6;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
@@ -64,7 +68,16 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         VerticalLayout layout = new VerticalLayout();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        SearchResult result = Database.processQuery(query);
+        H1 cosmos = new H1("cosmos");
+        TextField input = new TextField();
+        input.setValue(query);
+        Button search = new Button("Search");
+        search.addClickListener(event -> {
+            UI.getCurrent().navigate("/search/" + input.getValue());
+        });
+        layout.add(new HorizontalLayout(cosmos, input, search));
+
+        SearchResult result = Database.processQuery(query.toLowerCase());
         ArrayList<WebPage> pages = new ArrayList<>(result.matches.values());
 
         ArrayList<Component> components = new ArrayList<>();
