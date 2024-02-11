@@ -8,6 +8,8 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H6;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -32,7 +34,7 @@ public class HomeView  extends AppLayout {
         TextField input = new TextField();
         layout.add(input);
 
-        Button search = new Button("Search");
+        Button search = new Button("Search", new Icon(VaadinIcon.SEARCH));
         search.addClickListener(event -> {
            UI.getCurrent().navigate("/search/" + input.getValue());
         });

@@ -12,6 +12,8 @@ import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H6;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -71,7 +73,7 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         H1 cosmos = new H1("cosmos");
         TextField input = new TextField();
         input.setValue(query);
-        Button search = new Button("Search");
+        Button search = new Button("Search", new Icon(VaadinIcon.SEARCH));
         search.addClickListener(event -> {
             UI.getCurrent().navigate("/search/" + input.getValue());
         });
