@@ -2,3 +2,6 @@
 Using HTML WebScraping and a set of Seed URLs cosmos crawls through the web to index URLs.
 
 ![Screenshot](.github/cosmos.png)
+
+
+![Screenshot2](.github/searching.png)
