@@ -23,4 +23,8 @@ public class WebPage {
     public int getScore() {
         return score;
     }
+
+    public String getTitle() {
+        return title;
+    }
 }
