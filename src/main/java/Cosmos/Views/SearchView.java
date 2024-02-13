@@ -27,10 +27,6 @@ import java.util.ArrayList;
 @Route("/search")
 class SearchView extends AppLayout implements HasUrlParameter<String> {
 
-    public SearchView() {
-        //setContent(createContent());
-    }
-
     void addNestedContent(ArrayList<Component> components, int i, VerticalLayout parent, boolean canNest) {
         if (i >= components.size()) {
             return;
