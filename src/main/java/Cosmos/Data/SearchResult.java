@@ -1,6 +1,5 @@
 package Cosmos.Data;
 
-import java.time.Instant;
 import java.util.HashMap;
 
 public class SearchResult {
