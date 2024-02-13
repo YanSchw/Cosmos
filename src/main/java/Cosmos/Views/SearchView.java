@@ -55,7 +55,7 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         span.setWidth("80%");
         span.setHeight("175px");
 
-        Button title = new Button(new Span(page.title));
+        Button title = new Button(new Span(page.getTitle()));
         title.addClickListener(event -> UI.getCurrent().getPage().setLocation(page.getURL()));
 
         Span url = new Span(page.getURL());
@@ -71,16 +71,16 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         for (String token : tokens) {
             for (WebPage page : pages) {
                 if (page.getURL().toLowerCase().contains(token.toLowerCase())) {
-                    page.score += 7_500;
+                    page.addScore(7_500);
                 }
                 if (page.getTitle().toLowerCase().contains(token.toLowerCase())) {
-                    page.score += 7_500;
+                    page.addScore(7_500);
                 }
 
                 String[] path = page.getURL().split("/");
                 String lastElement = path[path.length - 1].isEmpty() ? path[path.length - 2] : path[path.length - 1];
                 if (lastElement.toLowerCase().contains(token.toLowerCase())) {
-                    page.score += 10_000;
+                    page.addScore(10_000);
                 }
             }
         }
