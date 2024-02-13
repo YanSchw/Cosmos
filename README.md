@@ -9,11 +9,11 @@ Using HTML WebScraping and a set of Seed URLs **Cosmos** crawls through the web 
 > I only created this project, because I was interested in the idea of a **WebCrawler** and wanted to explore it...
 > In the end, this is more of an experiment rather than a sufficient product!
 
----
+# Featuring
 
 Indexes 20,000+ Webpages using 1,000,000+ Indicies within 15 Minutes!
 ![Screenshot2](.github/index.png)
 
-----
+# Screenshot
 
 ![Screenshot3](.github/searching.png)
