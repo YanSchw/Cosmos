@@ -1,5 +1,6 @@
 package Cosmos.Views;
 
+import Cosmos.Common.Util;
 import Cosmos.Data.Database;
 import Cosmos.Data.SearchResult;
 import Cosmos.Data.WebPage;
@@ -66,25 +67,7 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         return span;
     }
 
-    private void weightPages(ArrayList<WebPage> pages, String query) {
-        String[] tokens = query.split(" ");
-        for (String token : tokens) {
-            for (WebPage page : pages) {
-                if (page.getURL().toLowerCase().contains(token.toLowerCase())) {
-                    page.addScore(7_500);
-                }
-                if (page.getTitle().toLowerCase().contains(token.toLowerCase())) {
-                    page.addScore(7_500);
-                }
 
-                String[] path = page.getURL().split("/");
-                String lastElement = path[path.length - 1].isEmpty() ? path[path.length - 2] : path[path.length - 1];
-                if (lastElement.toLowerCase().contains(token.toLowerCase())) {
-                    page.addScore(10_000);
-                }
-            }
-        }
-    }
 
     public Component createContent(String query) {
         VerticalLayout layout = new VerticalLayout();
@@ -104,7 +87,7 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         layout.add(new H6("Found " + result.matches.size() + " Entries in " + result.elapsedTime + " Seconds."));
 
         ArrayList<WebPage> pages = new ArrayList<>(result.matches.values());
-        weightPages(pages, query);
+        Util.weightPages(pages, query);
         pages.sort((a, b) -> b.getScore() - a.getScore());
 
         ArrayList<Component> components = new ArrayList<>();
