@@ -1,5 +1,6 @@
 package Cosmos.Data;
 
+import Cosmos.Common.Log;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -26,7 +27,7 @@ public class WebCrawler extends Thread {
     public void run() {
         super.run();
 
-        System.out.println("Starting WebCrawler...");
+        Log.info("Starting WebCrawler...");
 
         while (true) {
             try {
@@ -38,7 +39,7 @@ public class WebCrawler extends Thread {
     }
 
     private void indexWebPage(String url) {
-        System.out.println("Indexing " + url);
+        Log.info("Indexing " + url);
 
         try {
 
@@ -52,7 +53,7 @@ public class WebCrawler extends Thread {
                 html = scanner.next();
                 scanner.close();
             } catch (Exception ex) {
-                System.out.println("Indexing " + url + " failed.");
+                Log.error("Indexing " + url + " failed.");
                 return;
             }
 
@@ -64,9 +65,6 @@ public class WebCrawler extends Thread {
             database.updateTitle(url, doc.title());
 
             ArrayList<String> hrefs = extractHRefFromDoc(doc);
-            /*for (String href : hrefs) {
-                Database.insertNewURL(href, depth + 1);
-            }*/
             database.insertBulkURLs(hrefs, depth + 1);
             ArrayList<String> tokens = extractTokensFromDoc(doc);
             database.deleteIndiciesForURL(url);
@@ -75,7 +73,7 @@ public class WebCrawler extends Thread {
 
         }
         catch (SQLException e) {
-            System.out.println("Transaction Rollback.");
+            Log.warn("Transaction Rollback.");
             reconnectDatabase();
         }
     }

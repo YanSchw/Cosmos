@@ -1,6 +1,5 @@
 package Cosmos.Data;
 
-import java.time.Instant;
 import java.util.HashMap;
 
 public class SearchResult {
@@ -13,12 +12,12 @@ public class SearchResult {
         if (!matches.containsKey(url)) {
             WebPage page = new WebPage();
             page.setURL(url);
-            page.title = title;
+            page.setTitle(title);
             matches.put(url, page);
         }
 
         WebPage page = matches.get(url);
-        page.score += 100;
+        page.addScore(100);
     }
 
 }
