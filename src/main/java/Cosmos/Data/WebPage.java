@@ -6,6 +6,15 @@ public class WebPage {
     private String title;
     private int score;
 
+    public WebPage() {
+
+    }
+    public WebPage(String url, String title, int score) {
+        setURL(url);
+        setTitle(title);
+        addScore(score);
+    }
+
     public void setURL(String url) {
         this.url = url;
         score += URLtoScore(this.url);
