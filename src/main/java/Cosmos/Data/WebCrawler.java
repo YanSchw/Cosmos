@@ -64,9 +64,6 @@ public class WebCrawler extends Thread {
             database.updateTitle(url, doc.title());
 
             ArrayList<String> hrefs = extractHRefFromDoc(doc);
-            /*for (String href : hrefs) {
-                Database.insertNewURL(href, depth + 1);
-            }*/
             database.insertBulkURLs(hrefs, depth + 1);
             ArrayList<String> tokens = extractTokensFromDoc(doc);
             database.deleteIndiciesForURL(url);
