@@ -2,6 +2,8 @@ package Cosmos.Common;
 
 import Cosmos.Data.WebPage;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 // This class offers common utilities needed for Cosmos
 public class Util {
@@ -24,6 +26,18 @@ public class Util {
                 }
             }
         }
+    }
+
+    public static ArrayList<String> getDuplicatesFromList(ArrayList<String> list) {
+        final ArrayList<String> outList = new ArrayList<>();
+        final Set<String> filterSet = new HashSet<>();
+
+        for (String It : list) {
+            if (!filterSet.add(It)) {
+                outList.add(It);
+            }
+        }
+        return outList;
     }
 
 }

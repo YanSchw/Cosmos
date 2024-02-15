@@ -1,6 +1,7 @@
 package Cosmos.Data;
 
 import Cosmos.Common.Log;
+import Cosmos.Common.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -73,8 +74,9 @@ public class WebCrawler extends Thread {
             database.insertBulkURLs(hrefs, depth + 1);
             ArrayList<String> tokens = extractTokensFromDoc(doc);
             database.deleteIndiciesForURL(url);
-            database.insertIndicies(url, tokens);
-
+            ArrayList<String> indices = Util.getDuplicatesFromList(tokens);
+            indices.add(doc.title());
+            database.insertIndicies(url, indices);
 
         }
         catch (SQLException e) {
