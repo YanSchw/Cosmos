@@ -75,7 +75,7 @@ public class WebCrawler extends Thread {
             ArrayList<String> tokens = extractTokensFromDoc(doc);
             database.deleteIndiciesForURL(url);
             ArrayList<String> indices = Util.getDuplicatesFromList(tokens);
-            indices.add(doc.title());
+            indices.add(doc.title().toLowerCase());
             database.insertIndicies(url, indices);
 
         }
