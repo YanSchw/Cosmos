@@ -1,5 +1,6 @@
 package Cosmos.Data;
 
+import Cosmos.Common.Log;
 import Cosmos.Common.Seeds;
 
 import java.sql.*;
@@ -29,7 +30,7 @@ public class Database {
     public static void setup() {
         try {
             connectionMain = connectToDatabase();
-            System.out.println("Database connected!");
+            Log.info("Database connected!");
         } catch (SQLException e) {
             throw new IllegalStateException("Cannot connect the database!", e);
         }
@@ -179,10 +180,18 @@ public class Database {
 
         return result;
     }
+    public int getDepthFromURL(String url) throws SQLException {
+        Statement stmt = connectionDatabase.createStatement();
+        ResultSet result = stmt.executeQuery("SELECT depth FROM webcontent WHERE url = '" + url + "';");
 
-    public static int getWebContentCount() {
+        result.next();
+        return result.getInt(1);
+    }
+
+    // For use in HomeView
+    public int getWebContentCount() {
         try {
-            Statement stmt = connectionMain.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM webcontent;");
 
             result.next();
@@ -191,9 +200,9 @@ public class Database {
             throw new RuntimeException(e);
         }
     }
-    public static int getWebIndexCount() {
+    public int getWebIndexCount() {
         try {
-            Statement stmt = connectionMain.createStatement();
+            Statement stmt = connectionDatabase.createStatement();
             ResultSet result = stmt.executeQuery("SELECT COUNT(*) FROM webindex;");
 
             result.next();
@@ -201,13 +210,5 @@ public class Database {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public int getDepthFromURL(String url) throws SQLException {
-        Statement stmt = connectionDatabase.createStatement();
-        ResultSet result = stmt.executeQuery("SELECT depth FROM webcontent WHERE url = '" + url + "';");
-
-        result.next();
-        return result.getInt(1);
     }
 }
