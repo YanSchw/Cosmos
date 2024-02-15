@@ -20,6 +20,11 @@ public class WebCrawler extends Thread {
     }
 
     private void reconnectDatabase() {
+        if (database != null) {
+            try {
+                database.closeConnection();
+            } catch (SQLException ignored) { }
+        }
         database = new Database();
     }
 
