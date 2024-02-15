@@ -22,6 +22,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
+
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 @Route("/search")
@@ -79,7 +81,11 @@ class SearchView extends AppLayout implements HasUrlParameter<String> {
         search.addClickShortcut(Key.ENTER);
         layout.add(new HorizontalLayout(cosmos, input, search));
 
-        SearchResult result = Database.processQuery(query.toLowerCase());
+        Database database = new Database();
+        SearchResult result = database.processQuery(query.toLowerCase());
+        try {
+            database.closeConnection();
+        } catch (SQLException ignored) { }
         layout.add(new H6("Found " + result.matches.size() + " Entries in " + result.elapsedTime + " Seconds."));
 
         ArrayList<WebPage> pages = new ArrayList<>(result.matches.values());

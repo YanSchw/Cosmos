@@ -1,6 +1,7 @@
 package Cosmos.Data;
 
 import Cosmos.Common.Log;
+import Cosmos.Common.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,6 +14,7 @@ import java.util.Scanner;
 
 public class WebCrawler extends Thread {
 
+    public static final int MAX_DEPTH = 5;
     private Database database;
 
     public WebCrawler() {
@@ -20,6 +22,11 @@ public class WebCrawler extends Thread {
     }
 
     private void reconnectDatabase() {
+        if (database != null) {
+            try {
+                database.closeConnection();
+            } catch (SQLException ignored) { }
+        }
         database = new Database();
     }
 
@@ -42,8 +49,10 @@ public class WebCrawler extends Thread {
         Log.info("Indexing " + url);
 
         try {
-
             int depth = database.getDepthFromURL(url);
+            if (depth > MAX_DEPTH) {
+                return;
+            }
             String html = null;
             URLConnection connection = null;
             try {
@@ -68,8 +77,9 @@ public class WebCrawler extends Thread {
             database.insertBulkURLs(hrefs, depth + 1);
             ArrayList<String> tokens = extractTokensFromDoc(doc);
             database.deleteIndiciesForURL(url);
-            database.insertIndicies(url, tokens);
-
+            ArrayList<String> indices = Util.getDuplicatesFromList(tokens);
+            indices.add(doc.title().toLowerCase());
+            database.insertIndicies(url, indices);
 
         }
         catch (SQLException e) {

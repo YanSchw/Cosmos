@@ -26,7 +26,8 @@ public class HomeView  extends AppLayout {
     Component createContent() {
         H1 cosmos = new H1("cosmos");
 
-        H6 info = new H6("Found " + Database.getWebContentCount() + " WebPages using " + Database.getWebIndexCount() + " Indicies.");
+        Database database = new Database();
+        H6 info = new H6("Found " + database.getWebContentCount() + " WebPages using " + database.getWebIndexCount() + " Indicies.");
 
         HorizontalLayout layout = new HorizontalLayout();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
