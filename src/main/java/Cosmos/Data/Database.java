@@ -26,6 +26,9 @@ public class Database {
     private static Connection connectToDatabase() throws SQLException {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/", "root", "1234");
     }
+    public void closeConnection() throws SQLException {
+        connectionDatabase.close();
+    }
 
     public static void setup() {
         try {
@@ -148,7 +151,7 @@ public class Database {
         stmt.execute(sql + ";");
     }
 
-    public static SearchResult processQuery(String query) {
+    public SearchResult processQuery(String query) {
         final String[] strs = query.split(" ");
         ArrayList<String> tokens = new ArrayList<>();
         for (String str : strs) {
@@ -156,13 +159,13 @@ public class Database {
         }
         return processTokens(tokens);
     }
-    public static SearchResult processTokens(ArrayList<String> tokens) {
+    public SearchResult processTokens(ArrayList<String> tokens) {
         SearchResult result = new SearchResult();
         Instant start = Instant.now();
 
         for (String token : tokens) {
             try {
-                Statement stmt = connectionMain.createStatement();
+                Statement stmt = connectionDatabase.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT url, title FROM webcontent, webindex WHERE webcontent.id = webindex.contentID AND idx = '" + token + "';");
 
                 while (rs.next()) {
