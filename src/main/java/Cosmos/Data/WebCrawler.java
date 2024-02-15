@@ -14,6 +14,7 @@ import java.util.Scanner;
 
 public class WebCrawler extends Thread {
 
+    public static final int MAX_DEPTH = 5;
     private Database database;
 
     public WebCrawler() {
@@ -48,8 +49,10 @@ public class WebCrawler extends Thread {
         Log.info("Indexing " + url);
 
         try {
-
             int depth = database.getDepthFromURL(url);
+            if (depth > MAX_DEPTH) {
+                return;
+            }
             String html = null;
             URLConnection connection = null;
             try {
