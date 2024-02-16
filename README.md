@@ -17,3 +17,10 @@ Indexes 20,000+ Webpages using 1,000,000+ Indicies within 15 Minutes!
 # Screenshot
 
 ![Screenshot3](.github/searching.png)
+
+# Run It Yourself
+- Clone the Repository
+- Build using Maven
+- Make sure a MySQL Database is running on **"mysql://localhost:3306/"**, User: **root**, Password: **1234**
+- Run the Project
+- Visit http://localhost:8080/
